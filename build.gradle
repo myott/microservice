@@ -1,0 +1,49 @@
+buildscript {
+  repositories {
+    jcenter()
+    maven { url 'https://oss.jfrog.org/artifactory/repo' }
+  }
+  dependencies {
+    classpath 'io.ratpack:ratpack-gradle:0.9.17'
+  }
+}
+
+if (!JavaVersion.current().java8Compatible) {
+  throw new IllegalStateException("Must be built with Java 8 or higher")
+}
+
+apply plugin: "io.ratpack.ratpack-groovy"
+apply plugin: "idea"
+
+repositories {
+  jcenter()
+  maven { url 'https://oss.jfrog.org/artifactory/repo' }
+}
+
+dependencies {
+  testCompile "org.spockframework:spock-core:0.7-groovy-2.0", {
+    exclude module: "groovy-all"
+  }
+
+  runtime 'org.slf4j:slf4j-simple:1.7.10'
+
+  compile ratpack.dependency("guice")
+  compile ratpack.dependency("jackson")
+  compile ratpack.dependency("rx")
+  compile ratpack.dependency("h2")
+  compile ratpack.dependency("hikari")
+  compile ratpack.dependency("hystrix")
+}
+
+idea {
+  project {
+    jdkName "1.8"
+    languageLevel "1.8"
+    ipr {
+      withXml { provider ->
+        def node = provider.asNode()
+        node.component.find { it.'@name' == 'VcsDirectoryMappings' }?.mapping[0].'@vcs' = 'Git'
+      }
+    }
+  }
+}
