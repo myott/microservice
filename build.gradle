@@ -4,7 +4,7 @@ buildscript {
     maven { url 'https://oss.jfrog.org/artifactory/repo' }
   }
   dependencies {
-    classpath 'io.ratpack:ratpack-gradle:0.9.17'
+    classpath 'io.ratpack:ratpack-gradle:0.9.18'
   }
 }
 
@@ -14,6 +14,7 @@ if (!JavaVersion.current().java8Compatible) {
 
 apply plugin: "io.ratpack.ratpack-groovy"
 apply plugin: "idea"
+apply plugin: "java"
 
 repositories {
   jcenter()
@@ -24,6 +25,7 @@ dependencies {
   testCompile "org.spockframework:spock-core:0.7-groovy-2.0", {
     exclude module: "groovy-all"
   }
+  testCompile 'junit:junit:4.11'
 
   runtime 'org.slf4j:slf4j-simple:1.7.10'
 

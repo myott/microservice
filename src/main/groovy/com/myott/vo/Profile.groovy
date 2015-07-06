@@ -8,4 +8,15 @@ class Profile {
   String firstName
   String lastName
   String email
+
+
+  @Override
+  public String toString() {
+    return "Profile{" +
+        "id=" + id +
+        ", firstName='" + firstName + '\'' +
+        ", lastName='" + lastName + '\'' +
+        ", email='" + email + '\'' +
+        '}';
+  }
 }

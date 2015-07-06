@@ -5,10 +5,13 @@ import com.myott.vo.Profile
 import com.myott.vo.StormService
 import com.netflix.hystrix.HystrixCommandGroupKey
 import com.netflix.hystrix.HystrixCommandKey
+import com.netflix.hystrix.HystrixCommandProperties
 import com.netflix.hystrix.HystrixObservableCommand
 import groovy.sql.GroovyRowResult
 import groovy.sql.Sql
 import ratpack.exec.ExecControl
+
+import java.util.concurrent.atomic.AtomicInteger
 
 import static ratpack.rx.RxRatpack.observe
 
@@ -22,6 +25,8 @@ class ProfileDbCommands {
   private final ExecControl execControl
   private static final HystrixCommandGroupKey hystrixCommandGroupKey =
       HystrixCommandGroupKey.Factory.asKey("sql-profiledb")
+
+  private final AtomicInteger requestCounter = new AtomicInteger(0)
 
   @Inject
   public ProfileDbCommands(StormService stormService, Sql sql, ExecControl execControl) {
@@ -84,12 +89,15 @@ class ProfileDbCommands {
     return new HystrixObservableCommand<Long>(
         HystrixObservableCommand.Setter
             .withGroupKey(hystrixCommandGroupKey)
-            .andCommandKey(HystrixCommandKey.Factory.asKey("insert"))) {
-
+            .andCommandKey(HystrixCommandKey.Factory.asKey("insert"))
+            .andCommandPropertiesDefaults(createPropertiesSetter().withCircuitBreakerErrorThresholdPercentage(20))) {
       @Override
       protected rx.Observable<Long> construct() {
         observe(
             execControl.blocking {
+              if (requestCounter.incrementAndGet() % 3 == 0) {
+                throw new Exception()
+              }
               Map map = [firstName: profile.firstName, lastName: profile.lastName, email: profile.email]
               sql.executeInsert(map, 'insert into profile (first_name, last_name, email) values (:firstName, :lastName, :email)')
             }
@@ -97,7 +105,7 @@ class ProfileDbCommands {
               l[0][0]
             }
             .map { it.toString() }
-            .map(Long.&parseLong)
+                .map(Long.&parseLong)
         )
       }
 
@@ -111,5 +119,9 @@ class ProfileDbCommands {
         )
       }
     }.toObservable()
+  }
+
+  static HystrixCommandProperties.Setter createPropertiesSetter(){
+    HystrixCommandProperties.invokeMethod("Setter", null) as HystrixCommandProperties.Setter
   }
 }
