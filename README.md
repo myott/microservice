@@ -16,3 +16,5 @@
       "lastName" : "bar",
       "email" : "foo.bar@gmail.com"
     }
+
+    $ while true; do curl -H "Content-Type: application/json" -X POST -d '{"firstName": "foo", "lastName": "bar", "email": "foo.bar@gmail.com"}' http://localhost:5050/service/register 2>&1 >/dev/null & sleep .2 ; done
